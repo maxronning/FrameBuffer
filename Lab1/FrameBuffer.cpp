@@ -201,7 +201,6 @@ void FrameBuffer::rasterizeTriangle(const Vector2D &p0, const Vector2D &p1, cons
 
     
 };
-
 void FrameBuffer::setWidth(int a)  {
     w = a;
 };
