@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		EC6998431C4D54EA00214187 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EC6998421C4D54EA00214187 /* main.cpp */; };
+		ECBB5A451C515E6400D69400 /* FrameBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = ECBB5A431C515E6400D69400 /* FrameBuffer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,8 +24,14 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		EC57B1091CB588890057A3EF /* Circle3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Circle3D.h; sourceTree = "<group>"; };
 		EC69983F1C4D54EA00214187 /* Lab1 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Lab1; sourceTree = BUILT_PRODUCTS_DIR; };
 		EC6998421C4D54EA00214187 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		EC69984A1C4D566000214187 /* Vector2D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vector2D.h; sourceTree = "<group>"; };
+		EC69984C1C4D8E2200214187 /* Vector3D.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Vector3D.h; sourceTree = "<group>"; };
+		ECBB5A421C515E5400D69400 /* FrameBuffer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FrameBuffer.h; sourceTree = "<group>"; };
+		ECBB5A431C515E6400D69400 /* FrameBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FrameBuffer.cpp; sourceTree = "<group>"; };
+		ECFAFE341CAF09BA005C7263 /* Matrix3x3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Matrix3x3.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +65,12 @@
 			isa = PBXGroup;
 			children = (
 				EC6998421C4D54EA00214187 /* main.cpp */,
+				EC69984A1C4D566000214187 /* Vector2D.h */,
+				ECBB5A421C515E5400D69400 /* FrameBuffer.h */,
+				EC57B1091CB588890057A3EF /* Circle3D.h */,
+				ECBB5A431C515E6400D69400 /* FrameBuffer.cpp */,
+				EC69984C1C4D8E2200214187 /* Vector3D.h */,
+				ECFAFE341CAF09BA005C7263 /* Matrix3x3.h */,
 			);
 			path = Lab1;
 			sourceTree = "<group>";
@@ -118,6 +131,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ECBB5A451C515E6400D69400 /* FrameBuffer.cpp in Sources */,
 				EC6998431C4D54EA00214187 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -237,6 +251,7 @@
 				EC6998481C4D54EB00214187 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
