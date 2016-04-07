@@ -17,7 +17,7 @@ class Circle3D {
         y = c.y;
         z = c.z;
         r = radius;
-    };
+    }
     
     Vector3D location() {
         return Vector3D(this->x, this->y, this->z);

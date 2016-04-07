@@ -219,6 +219,16 @@ void FrameBuffer::setAll(short int red, short int green, short int blue) {
     }
 };
 
+double FrameBuffer::hit(Circle3D c, Vector3D e) {
+    
+    Vector3D d(0,0,-1); //Distance vector
+    double dp = d.dot(e - c.location());
+    
+    //Computes if current ray intersects object
+    double t = ( (-1)*dp - sqrt( pow(dp, 2) - d.dot(d)*((e - c.location()).dot(e - c.location()) - pow(c.getRad(), 2)))) / (d.dot(d));
+    
+    return t;
+};
 
 void FrameBuffer::raytrace() { //Implements orthographic ray tracing
     
@@ -228,7 +238,7 @@ void FrameBuffer::raytrace() { //Implements orthographic ray tracing
     double bottom = -0.5;
     double top = 0.5;
     
-    Vector3D d(0,0,-1); //Distance vector
+    
     double t = 0; //Point of intersection
     
     for (int j = 0; j < getHeight(); j++) { // Framebuffer loops to create ray tracing window
@@ -240,18 +250,23 @@ void FrameBuffer::raytrace() { //Implements orthographic ray tracing
             
             Vector3D e(u, v, 0); //Starting vector of ray at (u,v)
             
-            //Vector3D ray = e + d * t;
-            
             Circle3D c(Vector3D(0.5, 0.5, -1), .25); // Declaring circle object in center of framebuffer
-            double dp = d.dot(e - c.location());
+            //Circle3D c1(Vector3D(0.75,0.75, -0.5), .25);
             
-            //Computes if current ray intersects object
-            t = ( (-1)*dp - sqrt( pow(dp, 2) - d.dot(d)*((e - c.location()).dot(e - c.location()) - pow(c.getRad(), 2)))) / (d.dot(d));
+            double t = hit(c, e);
             
-            //If ray intersects object, set pixel to yello
+            //If ray intersects object, set pixel to yellow
             if (t >= 0 && t<=1) {
                 set(i, j, 255, 255, 0);
             }
+            
+//            double t1 = hit(c1, e);
+//            
+//            if (t1 >= 0 && t1  <=1 ) {
+//                set(i, j, 255, 0, 255);
+//            }
+            
+            
         }
     }
 };
