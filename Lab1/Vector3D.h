@@ -71,12 +71,14 @@ public:
     }
     
     // Normalize the vector and return it
-    void normalize()
-    {
-        float mag = sqrtf(x* x + y * y + z * z);
-        this->x = x / mag;
-        this->y = y / mag;
-        this->z = z / mag;
+    Vector3D normalize() {
+    
+        float mag = sqrtf(this->x * this->x + this->y * this->y + this->z * this->z);
+        Vector3D r;
+        r.x = this->x / mag;
+        r.y = this->y / mag;
+        r.z = this->z / mag;
+        return r;
     }
     
     // Overloaded scalar division operator

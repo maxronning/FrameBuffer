@@ -233,13 +233,13 @@ double FrameBuffer::hit(Circle3D c, Vector3D e) {
 void FrameBuffer::raytrace() { //Implements orthographic ray tracing
     
     //Bounds of viewing window
-    double left = -0.5;
-    double right = 0.5;
-    double bottom = -0.5;
-    double top = 0.5;
-    
-    
-    double t = 0; //Point of intersection
+    double left = 0.0;
+    double right = 1.0;
+    double bottom = 0.0;
+    double top = 1.0;
+    //double near = 0.0;
+    //double far = 0.0;
+    Vector3D d(0,0,-1); //Distance vector
     
     for (int j = 0; j < getHeight(); j++) { // Framebuffer loops to create ray tracing window
         for (int i = 0; i < getWidth(); i++) {
@@ -251,19 +251,42 @@ void FrameBuffer::raytrace() { //Implements orthographic ray tracing
             Vector3D e(u, v, 0); //Starting vector of ray at (u,v)
             
             Circle3D c(Vector3D(0.5, 0.5, -1), .25); // Declaring circle object in center of framebuffer
-            //Circle3D c1(Vector3D(0.75,0.75, -0.5), .25);
             
             double t = hit(c, e);
             
+            Vector3D l(-1.0,1.0, 1.0); //light vector
+            double intensity = 1.0;
+            Vector3D ray = e + d * t; //ray vector
+            Vector3D norm = (ray - c.location())/c.getRad();
+            
+            Vector3D d_eye(0, 0, 1.0);
+            Vector3D preH = d_eye+l;
+            Vector3D h = preH.normalize();
+            
+            double I_a = 0.1;
+            double k_a = 0.8;
+            double k_d = 0.8;
+            double k_s = 0.5;
+            double L;
+            
+            if (norm.dot(l) > 0 && norm.dot(h)) {
+                L = k_a * I_a + k_d * intensity * (norm.dot(l)) + pow(k_s * intensity * norm.dot(h), 10); //max = non negative dot product
+                if (L > 1.0) L = 1.0;
+                
+                cout << "L: " << L << endl << endl;
+            }
+        
+            
             //If ray intersects object, set pixel to yellow
             if (t >= 0 && t<=1) {
-                set(i, j, 255, 255, 0);
+                set(i, j, L*255,L*1, L*255);
+                
             }
             
 //            double t1 = hit(c1, e);
 //            
 //            if (t1 >= 0 && t1  <=1 ) {
-//                set(i, j, 255, 0, 255);
+//                set(i, j, L*200, L*200, L);
 //            }
             
             

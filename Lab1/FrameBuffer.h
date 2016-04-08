@@ -9,7 +9,7 @@
 
 #ifndef FRAMEBUFFERH
 #define FRAMEBUFFERH
-
+using namespace std;
 #include "Vector2D.h"
 #include "Vector3D.h"
 #include "Circle3D.h"
