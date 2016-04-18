@@ -56,7 +56,7 @@ class FrameBuffer {
     
     void setAll(short int red, short int green, short int blue);
     
-    double hit(Circle3D c, Vector3D e);
+    double hit(Circle3D c, Vector3D e, Vector3D dist);
     
     void writePPM(const std::string filename) const;
     

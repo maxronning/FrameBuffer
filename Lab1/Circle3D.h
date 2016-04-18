@@ -12,6 +12,8 @@
 class Circle3D {
     public:
     
+    Circle3D() { }
+    
     Circle3D(const Vector3D& c, double radius) {
         x = c.x;
         y = c.y;

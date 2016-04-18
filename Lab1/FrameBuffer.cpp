@@ -219,13 +219,11 @@ void FrameBuffer::setAll(short int red, short int green, short int blue) {
     }
 };
 
-double FrameBuffer::hit(Circle3D c, Vector3D e) {
+double FrameBuffer::hit(Circle3D c, Vector3D e, Vector3D dist) {
     
-    Vector3D d(0,0,-1); //Distance vector
-    double dp = d.dot(e - c.location());
-    
+    double dp = dist.dot(e - c.location());
     //Computes if current ray intersects object
-    double t = ( (-1)*dp - sqrt( pow(dp, 2) - d.dot(d)*((e - c.location()).dot(e - c.location()) - pow(c.getRad(), 2)))) / (d.dot(d));
+    double t = ( (-1)*dp - sqrt( pow(dp, 2) - dist.dot(dist)*((e - c.location()).dot(e - c.location()) - pow(c.getRad(), 2)))) / (dist.dot(dist));
     
     return t;
 };
@@ -233,63 +231,66 @@ double FrameBuffer::hit(Circle3D c, Vector3D e) {
 void FrameBuffer::raytrace() { //Implements orthographic ray tracing
     
     //Bounds of viewing window
-    double left = 0.0;
+    double left = -1.0;
     double right = 1.0;
-    double bottom = 0.0;
+    double bottom = -1.0;
     double top = 1.0;
-    //double near = 0.0;
-    //double far = 0.0;
-    Vector3D d(0,0,-1); //Distance vector
+    double near = 0.0;
+    double far = 10.0;
     
-    for (int j = 0; j < getHeight(); j++) { // Framebuffer loops to create ray tracing window
-        for (int i = 0; i < getWidth(); i++) {
+    Circle3D c(Vector3D(1, 1, -2), .25); // Declaring circle object in center of framebuffer
+    Circle3D c1(Vector3D(1, 1, -1), .25);
+    Circle3D circles[] = {c, c1};
             
-            //Create ray tracing grid (with arbitrary units)
-            double u = (left + (right - left)*(i + 0.5)) / getWidth();
-            double v = (bottom + (top - bottom)*(j + 0.5)) / getHeight();
-            
-            Vector3D e(u, v, 0); //Starting vector of ray at (u,v)
-            
-            Circle3D c(Vector3D(0.5, 0.5, -1), .25); // Declaring circle object in center of framebuffer
-            
-            double t = hit(c, e);
-            
-            Vector3D l(-1.0,1.0, 1.0); //light vector
-            double intensity = 1.0;
-            Vector3D ray = e + d * t; //ray vector
-            Vector3D norm = (ray - c.location())/c.getRad();
-            
-            Vector3D d_eye(0, 0, 1.0);
-            Vector3D preH = d_eye+l;
-            Vector3D h = preH.normalize();
-            
-            double I_a = 0.1;
-            double k_a = 0.8;
-            double k_d = 0.8;
-            double k_s = 0.5;
-            double L;
-            
-            if (norm.dot(l) > 0 && norm.dot(h)) {
-                L = k_a * I_a + k_d * intensity * (norm.dot(l)) + pow(k_s * intensity * norm.dot(h), 10); //max = non negative dot product
-                if (L > 1.0) L = 1.0;
-                
-                cout << "L: " << L << endl << endl;
-            }
         
+    for (int k = 0; k <= 1; k++ ) {
+        for (int j = 0; j < getHeight(); j++) { // Framebuffer loops to create ray tracing window
+            for (int i = 0; i < getWidth(); i++) {
             
-            //If ray intersects object, set pixel to yellow
-            if (t >= 0 && t<=1) {
-                set(i, j, L*255,L*1, L*255);
+                //Create ray tracing grid (with arbitrary units)
+                double u = (left + (right - left)*(i + 0.5)) / getWidth();
+                double v = (bottom + (top - bottom)*(j + 0.5)) / getHeight();
                 
+                Vector3D d(u, v, -5.0); //Distance vector
+                Vector3D e(0.5, 0.0, 5.0); //Vector of viewing 'eye'
+            
+                double t = hit(circles[k], e, d);
+                
+                Vector3D l(-1.0,0.5, 1.0); //light location vector
+                Vector3D lColor(1.0, 1.0, 1.0);
+                Vector3D ray = e + d * t; //ray vector
+                Vector3D norm = (ray - circles[k].location())/circles[k].getRad();
+                
+                Vector3D d_eye(0, 0, 1.0);
+                Vector3D preH = d_eye+l;
+                Vector3D h = preH.normalize();
+                
+                Vector3D I_a(1.0, 1.0, 1.0); //Ambient light intensity
+                Vector3D k_a(1.0, 1.0, 1.0); //Ambient light color
+                Vector3D k_d(0.0, 0.0, 1.0);
+                
+                if (k == 1) k_d.setVals(0.0, 1.0, 0.0);
+                
+                double k_s = 0.1; //Specular color of the surface
+                
+                Vector3D L(0.0, 0.0, 0.0);
+                
+                if (norm.dot(l) > 0 && norm.dot(h)) {
+                    L = k_a.cross(I_a) + k_d * (norm.dot(l));
+                    
+                    L = L + lColor * k_s * pow(norm.dot(h), 1000); //max = non negative dot product
+                    
+                    if (L.x > 1.0) L.setVals(1.0, L.y, L.z);
+                    if (L.y > 1.0) L.setVals(L.x, 1.0, L.z);
+                    if (L.z > 1.0) L.setVals(L.x, L.y, 1.0);
+                
+                }
+            
+                //If ray intersects object, set pixel to yellow
+                if (t >= near && t <= far) {
+                    set(i, j, lColor.x * L.x * 255, lColor.y * L.y * 255, lColor.z * L.z * 255);
+                }
             }
-            
-//            double t1 = hit(c1, e);
-//            
-//            if (t1 >= 0 && t1  <=1 ) {
-//                set(i, j, L*200, L*200, L);
-//            }
-            
-            
         }
     }
 };
