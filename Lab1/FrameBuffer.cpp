@@ -222,6 +222,7 @@ void FrameBuffer::setAll(short int red, short int green, short int blue) {
 double FrameBuffer::hit(Circle3D c, Vector3D e, Vector3D dist) {
     
     double dp = dist.dot(e - c.location());
+    
     //Computes if current ray intersects object
     double t = ( (-1)*dp - sqrt( pow(dp, 2) - dist.dot(dist)*((e - c.location()).dot(e - c.location()) - pow(c.getRad(), 2)))) / (dist.dot(dist));
     
@@ -238,7 +239,7 @@ void FrameBuffer::raytrace() { //Implements orthographic ray tracing
     double near = 0.0;
     double far = 10.0;
     
-    Circle3D c(Vector3D(1, 1, -2), .25); // Declaring circle object in center of framebuffer
+    Circle3D c(Vector3D(2, 2, -3), .25); // Declaring circle object in center of framebuffer
     Circle3D c1(Vector3D(1, 1, -1), .25);
     Circle3D circles[] = {c, c1};
             
@@ -252,7 +253,7 @@ void FrameBuffer::raytrace() { //Implements orthographic ray tracing
                 double v = (bottom + (top - bottom)*(j + 0.5)) / getHeight();
                 
                 Vector3D d(u, v, -5.0); //Distance vector
-                Vector3D e(0.5, 0.0, 5.0); //Vector of viewing 'eye'
+                Vector3D e(0.0, 0.0, 5.0); //location of viewing 'eye'
             
                 double t = hit(circles[k], e, d);
                 

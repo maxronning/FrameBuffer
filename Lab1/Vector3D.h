@@ -1,5 +1,5 @@
 //
-//  Vector2D.hpp
+//  Vector3D.hpp
 //  Homework 3
 //
 //  Created by Max Ronning on 1/18/16.
@@ -92,5 +92,5 @@ public:
 };
 
 
-#endif /* Vector2D_hpp */
+#endif /* Vector3D_hpp */
 
