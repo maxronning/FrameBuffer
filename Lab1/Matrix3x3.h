@@ -31,7 +31,7 @@ class Matrix3x3 {
         v32 = a32;
         v33 = a33;
         
-    }//end Constructor
+    }
     
     friend double det(const Matrix3x3& mat) {
         return ((mat.v11 * mat.v22 * mat.v33) + (mat.v12 * mat.v23 * mat.v31) + (mat.v13 * mat.v21 * mat.v32) - (mat.v31 * mat.v22 * mat.v13) - (mat.v32 * mat.v23 * mat.v11) - (mat.v33 * mat.v21 * mat.v12));

@@ -258,7 +258,7 @@ void FrameBuffer::raytrace() { //Implements orthographic ray tracing
                 double t = hit(circles[k], e, d);
                 
                 Vector3D l(-1.0,0.5, 1.0); //light location vector
-                Vector3D lColor(1.0, 1.0, 1.0);
+                Vector3D lColor(0.0, 0.0, 1.0);
                 Vector3D ray = e + d * t; //ray vector
                 Vector3D norm = (ray - circles[k].location())/circles[k].getRad();
                 
@@ -268,18 +268,18 @@ void FrameBuffer::raytrace() { //Implements orthographic ray tracing
                 
                 Vector3D I_a(1.0, 1.0, 1.0); //Ambient light intensity
                 Vector3D k_a(1.0, 1.0, 1.0); //Ambient light color
-                Vector3D k_d(0.0, 0.0, 1.0);
+                Vector3D k_d(1.0, 1.0, 1.0);
                 
                 if (k == 1) k_d.setVals(0.0, 1.0, 0.0);
                 
-                double k_s = 0.1; //Specular color of the surface
+                double k_s = 0.9; //Specular color of the surface
                 
                 Vector3D L(0.0, 0.0, 0.0);
                 
                 if (norm.dot(l) > 0 && norm.dot(h)) {
                     L = k_a.cross(I_a) + k_d * (norm.dot(l));
                     
-                    L = L + lColor * k_s * pow(norm.dot(h), 1000); //max = non negative dot product
+                    L = L + lColor * k_s * pow(norm.dot(h), 10); //max = non negative dot product
                     
                     if (L.x > 1.0) L.setVals(1.0, L.y, L.z);
                     if (L.y > 1.0) L.setVals(L.x, 1.0, L.z);

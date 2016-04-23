@@ -14,7 +14,7 @@
 
 int main(int argc, const char * argv[]) {
     
-    FrameBuffer a(10, 10);
+    FrameBuffer a(1000, 1000);
     a.setAll(50, 50, 50);
     
     a.raytrace();
