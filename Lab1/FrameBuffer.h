@@ -15,6 +15,7 @@ using namespace std;
 #include "Vector2D.h"
 #include "Vector3D.h"
 #include "Circle3D.h"
+#include "Matrix4x4.h"
 #include <array>
 #include <iostream>
 #include <string>
@@ -41,7 +42,21 @@ class FrameBuffer {
     
     void set(int x, int y, short int red, short int green, short int blue);
     
-    void raytrace();
+    void raytrace(Circle3D circles[]);
+    
+    void zBuffer();
+    
+    void setZbuff(double z);
+    
+    void printZbuff();
+    
+    void ortho1();
+    
+    void ortho2();
+    
+    void persp1();
+    
+    void persp2();
     
     int getWidth() const;
     
@@ -51,7 +66,7 @@ class FrameBuffer {
     
     void rasterizeline_parametric( const Vector2D& p0, const Vector2D &p1, const Vector3D& c0, const Vector3D& c1);
     
-    void rasterizeTriangle(const Vector2D& p0, const Vector2D &p1, const Vector2D &p2, const Vector3D& c0, const Vector3D& c1, const Vector3D& c2);
+    void rasterizeTriangle(const Vector4D& p0, const Vector4D &p1, const Vector4D &p2, const Vector3D& c0, const Vector3D& c1, const Vector3D& c2);
     
     void setWidth(int a);
     
@@ -67,9 +82,10 @@ class FrameBuffer {
     
     private:
     
-    int h;
-    int w;
+    int height;
+    int width;
     int* data;
+    double** zBuff;
 };
 
 #endif

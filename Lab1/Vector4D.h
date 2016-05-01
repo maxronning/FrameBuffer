@@ -15,10 +15,10 @@ class Vector4D {
     
     double x, y, z, w;
     
-    void Vector4D(){} // Empty Constructor
+    Vector4D(){} // Empty Constructor
     
     //Constructor
-    Vector4D(double q, double r double s, double t){
+    Vector4D(double q, double r, double s, double t){
         x = q;
         y = r;
         z = s;
@@ -26,11 +26,23 @@ class Vector4D {
     }
     
     //Setter for vector values
-    Vector4D& set(double q, double r double s, double t) {
+    Vector4D& set(double q, double r, double s, double t) {
         x = q;
         y = r;
         z = s;
         w = t;
+        return (*this);
+    }
+    
+    //prints the contents of the vector
+    void output() {
+        cout << "(" << this->x << ", " << this->y << ", " << this->z << ", " << this->w << ")" << endl;
+    }
+    
+    // Overloaded scalar division operator
+    Vector4D operator /(double scalar) const
+    {
+        return (Vector4D(x / scalar, y / scalar, z / scalar, w / scalar));
     }
     
 };

@@ -13,11 +13,30 @@ FrameBuffer::FrameBuffer(int width, int height) {
     setHeight(height);
     std::cout << "(" << getWidth() << "," << getHeight() << ")\n";
     my2Dpointer = new pixColor*[width];
-    
+    zBuff = new double*[width];
     for(int i = 0; i < width; i++) {
         my2Dpointer[i] = new pixColor[height];
+        zBuff[i] = new double[height];
     }
 };
+
+void FrameBuffer::setZbuff(double z) {
+    for (int j = 0; j < getHeight(); j++) {
+        for (int i = 0; i < getWidth(); i++) {
+            zBuff[i][j] = z;
+        }
+    }
+}
+
+void FrameBuffer::printZbuff() {
+    for (int y = getHeight() - 1; y >= 0; y--) {
+        cout << "\n";
+        
+        for (int x = 0; x < getWidth(); x++) {
+            cout << zBuff[x][y] << " ";
+        }
+    }
+}
 
 void FrameBuffer::set(int x, int y, short int red, short int green, short int blue) {
     if (x == getWidth()) {x -= 1;}
@@ -26,14 +45,16 @@ void FrameBuffer::set(int x, int y, short int red, short int green, short int bl
     my2Dpointer[x][y].r = red;
     my2Dpointer[x][y].g = green;
     my2Dpointer[x][y].b = blue;
+    
+    
 };
 
 int FrameBuffer::getWidth() const  {
-    return w;
+    return width;
 };
 
 int FrameBuffer::getHeight() const  {
-    return h;
+    return height;
 };
 
 void FrameBuffer::rasterizeline_implicit(const Vector2D& p0, const Vector2D &p1, const Vector3D& c) {
@@ -149,10 +170,10 @@ void FrameBuffer::rasterizeline_parametric( const Vector2D& p0, const Vector2D &
     }
 };
 
-void FrameBuffer::rasterizeTriangle(const Vector2D &p0, const Vector2D &p1, const Vector2D &p2,
+void FrameBuffer::rasterizeTriangle(const Vector4D &p0, const Vector4D &p1, const Vector4D &p2,
                                     const Vector3D& c0, const Vector3D& c1, const Vector3D& c2) {
     
-    double alpha, beta, gamma, f_A, f_B, f_G;
+    double alpha, beta, gamma, f_A, f_B, f_G, z;
     
     int orderY[3] = {(int) p0.y, (int) p1.y, (int) p2.y};
     std::sort(std::begin(orderY),std::end(orderY));
@@ -176,24 +197,32 @@ void FrameBuffer::rasterizeTriangle(const Vector2D &p0, const Vector2D &p1, cons
             alpha = ((p1.y - p2.y) * x + (p2.x - p1.x) * y + (p1.x * p2.y) - (p2.x * p1.y)) / f_A;
             beta  = ((p2.y - p0.y) * x + (p0.x - p2.x) * y + (p2.x * p0.y) - (p0.x * p2.y)) / f_B;
             gamma = ((p0.y - p1.y) * x + (p1.x - p0.x) * y + (p0.x * p1.y) - (p1.x * p0.y)) / f_G;
-
+            z = alpha * p0.z + beta * p1.z + gamma * p2.z;
+            
             if (alpha >= 0 && beta >= 0 && gamma >= 0) {
                 if (  (alpha > 0 || (f_A * ((p1.y - p2.y) * -1 + (p2.x - p1.x) * -1 + (p1.x * p2.y) - (p2.x * p1.y)) > 0)) &&
                       (beta > 0 || (f_B * ((p2.y - p0.y) * -1 + (p0.x - p2.x) * -1 + (p2.x * p0.y) - (p0.x * p2.y)) > 0)) &&
                       (gamma > 0 || (f_G * (p0.y - p1.y) * -1 + (p1.x - p0.x) * -1 + (p0.x * p1.y) - (p1.x * p0.y)) > 0)) {
                     
-                    Vector3D color1(0.0, 0.0, 0.0);
-                    Vector3D color2(0.0, 0.0, 0.0);
-                    Vector3D color3(0.0, 0.0, 0.0);
-                    Vector3D finalColor(0.0, 0.0, 0.0);
+                    if ( z > zBuff[x][y]) { // NOTE z values are negative!
+                        zBuff[x][y] = z;
+                        
+                        Vector3D color1(0.0, 0.0, 0.0);
+                        Vector3D color2(0.0, 0.0, 0.0);
+                        Vector3D color3(0.0, 0.0, 0.0);
+                        Vector3D finalColor(0.0, 0.0, 0.0);
+                        
+                        color1 = c0 * alpha;
+                        color2 = c1 * beta;
+                        color3 = c2 * gamma;
+                        finalColor = (c0 * alpha) + (c1 * beta) + (c2 * gamma);
+                        finalColor = finalColor * 255;
+                        
+                        set(x, y, finalColor.x, finalColor.y, finalColor.z);
+                        
+                    }
                     
-                    color1 = c0 * alpha;
-                    color2 = c1 * beta;
-                    color3 = c2 * gamma;
-                    finalColor = (c0 * alpha) + (c1 * beta) + (c2 * gamma);
-                    finalColor = finalColor * 255;
                     
-                    set(x, y, finalColor.x, finalColor.y, finalColor.z);
                 }
             }
         }
@@ -201,12 +230,13 @@ void FrameBuffer::rasterizeTriangle(const Vector2D &p0, const Vector2D &p1, cons
 
     
 };
+
 void FrameBuffer::setWidth(int a)  {
-    w = a;
+    width = a;
 };
 
 void FrameBuffer::setHeight(int a) {
-    h = a;
+    height = a;
 };
 
 void FrameBuffer::setAll(short int red, short int green, short int blue) {
@@ -229,7 +259,293 @@ double FrameBuffer::hit(Circle3D c, Vector3D e, Vector3D dist) {
     return t;
 };
 
-void FrameBuffer::raytrace() { //Implements orthographic ray tracing
+void FrameBuffer::zBuffer() {
+    
+    //viewing area
+    double l = -10.0;
+    double r =  10.0;
+    double b = -10.0;
+    double t =  10.0;
+    double n =  -5.0;
+    double f = -25.0;
+    
+    Matrix4x4 mOrtho, mVP, mCam, M, e;
+    
+    //Triangle points and colors
+    Vector4D p0(5, 5, 0, 0), p1(10, 14, 0, 0), p2(15, 5, 0, 0);
+    Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
+    
+    //Vectors for the camera transformation matrix
+    Vector3D eye(1.0, 1.0, 10.0), gaze(0.0, 0.0, -1.0), viewUp(-0.25, 1.0, 0.0);
+    Vector3D u, v, w;
+    
+    //UVW basis for camera
+    w = gaze.normalize() * -1;
+    cout << "w " << w.x << " " << w.y << " " << w.z <<endl;
+    u = (viewUp.cross(w)).normalize();
+    cout << "u " << u.x << " " << u.y << " " << u.z <<endl;
+    v = w.cross(u);
+    cout << "v " << v.x << " " << v.y << " " << v.z << endl << endl;
+    
+    mCam.set(u.x, u.y, u.z, 0,
+             v.x, v.y, v.z, 0,
+             w.x, w.y, w.z, 0,
+             0, 0, 0, 0);
+    
+    //mCam.output();
+    
+    e.set(1, 0, 0, (-1)*eye.x,
+          0, 1, 0, (-1)*eye.y,
+          0, 0, 1, (-1)*eye.z,
+          0, 0, 0, 1);
+    //e.output();
+    
+    mCam = mCam * e;
+    
+    mCam.output();
+
+    
+    mOrtho.makeOrtho(r, l, b, t, n, f);
+    mVP.makeVP(this->getWidth(), this->getHeight());
+    
+    //create matrix to
+    M = mVP * mOrtho * mCam;
+    
+    p0 = M * p0;
+    p1 = M * p1;
+    p2 = M * p2;
+    
+    rasterizeTriangle(p0, p1, p2, c0, c1, c2);
+    
+    
+}
+
+void FrameBuffer::ortho1() {
+   
+    //viewing area
+    double l = -10.0;
+    double r =  10.0;
+    double b = -10.0;
+    double t =  10.0;
+    double n =  -5.0;
+    double f = -25.0;
+    
+    //Matrices used for transformations
+    Matrix4x4 mOrtho, mVP, M;
+    
+    //Triangle points and colors
+    Vector4D p0(1, 1, 1, 1), p1(2, 5, 1, 1), p2(5, 1, 1, 1);
+    Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
+    
+    
+    mOrtho.makeOrtho(r, l, b, t, n, f);
+    
+    mVP.makeVP(this->getWidth(), this->getHeight());
+    
+    //create transform matrix
+    M = mVP * mOrtho;
+    M.output();
+    p0 = M * p0;
+    p1 = M * p1;
+    p2 = M * p2;
+    
+    rasterizeTriangle(p0, p1, p2, c0, c1, c2);
+}
+
+void FrameBuffer::ortho2() {
+    
+    //viewing area
+    double l = -10.0;
+    double r =  10.0;
+    double b = -10.0;
+    double t =  10.0;
+    double n =  -5.0;
+    double f = -25.0;
+    
+    Matrix4x4 mOrtho, mVP, mCam, M, e;
+    
+    //Triangle points and colors
+    Vector4D p0(5, 5, 1, 0), p1(10, 14, 1, 0), p2(15, 5, -5, 0);
+    Vector4D p3(5, 6, -1, 0), p4(11, 14, -1, 0), p5(15, 6, -1, 0);
+    Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
+    
+    //Vectors for the camera transformation matrix
+    Vector3D eye(1.0, -10.0, 10.0), gaze(0.0, 1.0, -1.0), viewUp(0.1, 1.0, 0.0);
+    Vector3D u, v, w;
+    
+    //UVW basis for camera
+    w = gaze.normalize() * -1;
+    //cout << "w " << w.x << " " << w.y << " " << w.z <<endl;
+    u = (viewUp.cross(w)).normalize();
+    //cout << "u " << u.x << " " << u.y << " " << u.z <<endl;
+    v = w.cross(u);
+    //cout << "v " << v.x << " " << v.y << " " << v.z << endl << endl;
+    
+    mCam.set(u.x, u.y, u.z, 0,
+             v.x, v.y, v.z, 0,
+             w.x, w.y, w.z, 0,
+             0, 0, 0, 0);
+    
+    e.set(1, 0, 0, (-1)*eye.x,
+          0, 1, 0, (-1)*eye.y,
+          0, 0, 1, (-1)*eye.z,
+          0, 0, 0, 1);
+    
+    mCam = mCam * e;
+    
+    //mCam.output();
+    
+    
+    mOrtho.makeOrtho(r, l, b, t, n, f);
+    mVP.makeVP(this->getWidth(), this->getHeight());
+    
+    //create matrix to
+    M = mVP * mOrtho * mCam;
+    
+    p0 = M * p0;
+    p1 = M * p1;
+    p2 = M * p2;
+    
+    rasterizeTriangle(p0, p1, p2, c0, c1, c2);
+    
+    p3 = M * p3;
+    p4 = M * p4;
+    p5 = M * p5;
+    
+    rasterizeTriangle(p3, p4, p5, c1, c2, c1);
+}
+
+void FrameBuffer::persp1(){
+    
+    //viewing area
+    double l = -10.0;
+    double r =  10.0;
+    double b = -10.0;
+    double t =  10.0;
+    double n =  -5.0;
+    double f = -25.0;
+    
+    Matrix4x4 mOrtho, mPersp, mVP, mCam, M, e, P;
+    
+    //Triangle points and colors
+    Vector4D p0(-3, 0, -5, 1), p1(1, 5, -5, 1), p2(-2, -1, -5, 1);
+    Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
+    
+    //Vectors for the camera transformation matrix
+    Vector3D eye(0.0, 0.0, 0.0), gaze(0.0, 0.0, -1.0), viewUp(0.0, 1.0, 0.0);
+    Vector3D u, v, w;
+    
+    //UVW basis for camera
+    w = gaze.normalize() * -1;
+    u = (viewUp.cross(w)).normalize();
+    v = w.cross(u);
+    
+    //setting the camera matrix
+    mCam.set(u.x, u.y, u.z, 0,
+             v.x, v.y, v.z, 0,
+             w.x, w.y, w.z, 0,
+             0, 0, 0, 1);
+    
+    //setting the eye matrix
+    e.set(1, 0, 0, (-1)*eye.x,
+          0, 1, 0, (-1)*eye.y,
+          0, 0, 1, (-1)*eye.z,
+          0, 0, 0, 1);
+
+    mCam = mCam * e;
+
+    P.set(n, 0, 0, 0, 0, n, 0, 0, 0, 0, n+f, (-1)*f*n, 0, 0, 1, 0);
+    
+    mOrtho.makeOrtho(r, l, b, t, n, f);
+    mPersp = mOrtho*P;
+    mVP.makeVP(this->getWidth(), this->getHeight());
+
+    //create matrix to
+    M = mVP * mPersp * mCam;
+    
+    p0 = M * p0;
+    p1 = M * p1;
+    p2 = M * p2;
+    
+    rasterizeTriangle( (p0 / p0.w), (p1 / p1.w), (p2 / p2.w), c0, c1, c2);
+    
+    Vector4D p3(-1, 7, -7, 1), p4(-2, 5, -7, 1), p5(1.5, -0.75, -3, 1);
+    Vector3D c3(0.0, 1.0, 1.0), c4(0.2, 0.0, 1.0), c5(0.3,0.9,0.2);
+    
+    p3 = M * p3;
+    p4 = M * p4;
+    p5 = M * p5;
+    
+    rasterizeTriangle( (p3 / p3.w), (p4 / p4.w), (p5 / p5.w), c3, c4, c5);
+    
+    Vector4D p6(5, 0, -7, 1), p7(4, 2, -7, 1), p8(-2, 0.85, -3, 1);
+    Vector3D c6(1.0, 0.5, 1.0), c7(1.0, 0.0, 0.2), c8(0.0 ,0.3,1.0);
+    
+    p6 = M * p6;
+    p7 = M * p7;
+    p8 = M * p8;
+    
+    rasterizeTriangle( (p6 / p6.w), (p7 / p7.w), (p8 / p8.w), c6, c7, c8);
+    
+}
+
+void FrameBuffer::persp2() {
+    
+    //viewing area
+    double l = -10.0;
+    double r =  10.0;
+    double b = -10.0;
+    double t =  10.0;
+    double n =  -5.0;
+    double f = -25.0;
+    
+    Matrix4x4 mOrtho, mPersp, mVP, mCam, M, e, P;
+    
+    //Triangle points and colors
+    Vector4D p0(0, 0, -5, 1), p1(3, 6, -5, 1), p2(7, 1, -5, 1);
+    Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
+    
+    //Vectors for the camera transformation matrix
+    Vector3D eye(1.0, 1.0, 10.0), gaze(0.0, 0.0, -1.0), viewUp(0.1, 1.0, 0.0);
+    Vector3D u, v, w;
+    
+    //UVW basis for camera
+    w = gaze.normalize() * -1;
+    u = (viewUp.cross(w)).normalize();
+    v = w.cross(u);
+    
+    //setting the camera matrix
+    mCam.set(u.x, u.y, u.z, 0,
+             v.x, v.y, v.z, 0,
+             w.x, w.y, w.z, 0,
+             0, 0, 0, 1);
+    
+    //setting the eye matrix
+    e.set(1, 0, 0, (-1)*eye.x,
+          0, 1, 0, (-1)*eye.y,
+          0, 0, 1, (-1)*eye.z,
+          0, 0, 0, 1);
+    
+    //Calculating the camera matrix
+    mCam = mCam * e;
+    
+    P.set(n, 0, 0, 0, 0, n, 0, 0, 0, 0, n+f, (-1)*f*n, 0, 0, 1, 0);
+    
+    mOrtho.makeOrtho(r, l, b, t, n, f);
+    mPersp = mOrtho*P;
+    mVP.makeVP(this->getWidth(), this->getHeight());
+    
+    //create matrix to
+    M = mVP * mPersp * mCam;
+    p0 = M * p0;
+    p1 = M * p1;
+    p2 = M * p2;
+    
+    rasterizeTriangle( (p0 / p0.w), (p1 / p1.w), (p2 / p2.w), c0, c1, c2);
+    
+};
+
+void FrameBuffer::raytrace(Circle3D circles[]) { //Implements orthographic ray tracing
     
     //Bounds of viewing window
     double left = -1.0;
@@ -238,11 +554,6 @@ void FrameBuffer::raytrace() { //Implements orthographic ray tracing
     double top = 1.0;
     double near = 0.0;
     double far = 10.0;
-    
-    Circle3D c(Vector3D(2, 2, -3), .25); // Declaring circle object in center of framebuffer
-    Circle3D c1(Vector3D(1, 1, -1), .25);
-    Circle3D circles[] = {c, c1};
-            
         
     for (int k = 0; k <= 1; k++ ) {
         for (int j = 0; j < getHeight(); j++) { // Framebuffer loops to create ray tracing window
