@@ -187,6 +187,9 @@ void FrameBuffer::rasterizeTriangle(const Vector4D &p0, const Vector4D &p1, cons
     int xMin = orderX[0];
     int xMax = orderX[2];
     
+    Vector3D l(-1.0,1.0, 1.0); //light location vector
+//    Vector4D norm = (p1 - p0).cross((p2 - p0));
+    
     f_A = (p1.y - p2.y) * p0.x + (p2.x - p1.x) * p0.y + (p1.x * p2.y) - (p2.x * p1.y);
     f_B = (p2.y - p0.y) * p1.x + (p0.x - p2.x) * p1.y + (p2.x * p0.y) - (p0.x * p2.y);
     f_G = (p0.y - p1.y) * p2.x + (p1.x - p0.x) * p2.y + (p0.x * p1.y) - (p1.x * p0.y);
@@ -219,16 +222,11 @@ void FrameBuffer::rasterizeTriangle(const Vector4D &p0, const Vector4D &p1, cons
                         finalColor = finalColor * 255;
                         
                         set(x, y, finalColor.x, finalColor.y, finalColor.z);
-                        
                     }
-                    
-                    
                 }
             }
         }
     }
-
-    
 };
 
 void FrameBuffer::setWidth(int a)  {
@@ -259,163 +257,88 @@ double FrameBuffer::hit(Circle3D c, Vector3D e, Vector3D dist) {
     return t;
 };
 
-void FrameBuffer::zBuffer() {
-    
-    //viewing area
-    double l = -10.0;
-    double r =  10.0;
-    double b = -10.0;
-    double t =  10.0;
-    double n =  -5.0;
-    double f = -25.0;
-    
-    Matrix4x4 mOrtho, mVP, mCam, M, e;
-    
-    //Triangle points and colors
-    Vector4D p0(5, 5, 0, 0), p1(10, 14, 0, 0), p2(15, 5, 0, 0);
-    Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
-    
-    //Vectors for the camera transformation matrix
-    Vector3D eye(1.0, 1.0, 10.0), gaze(0.0, 0.0, -1.0), viewUp(-0.25, 1.0, 0.0);
-    Vector3D u, v, w;
-    
-    //UVW basis for camera
-    w = gaze.normalize() * -1;
-    cout << "w " << w.x << " " << w.y << " " << w.z <<endl;
-    u = (viewUp.cross(w)).normalize();
-    cout << "u " << u.x << " " << u.y << " " << u.z <<endl;
-    v = w.cross(u);
-    cout << "v " << v.x << " " << v.y << " " << v.z << endl << endl;
-    
-    mCam.set(u.x, u.y, u.z, 0,
-             v.x, v.y, v.z, 0,
-             w.x, w.y, w.z, 0,
-             0, 0, 0, 0);
-    
-    //mCam.output();
-    
-    e.set(1, 0, 0, (-1)*eye.x,
-          0, 1, 0, (-1)*eye.y,
-          0, 0, 1, (-1)*eye.z,
-          0, 0, 0, 1);
-    //e.output();
-    
-    mCam = mCam * e;
-    
-    mCam.output();
-
-    
-    mOrtho.makeOrtho(r, l, b, t, n, f);
-    mVP.makeVP(this->getWidth(), this->getHeight());
-    
-    //create matrix to
-    M = mVP * mOrtho * mCam;
-    
-    p0 = M * p0;
-    p1 = M * p1;
-    p2 = M * p2;
-    
-    rasterizeTriangle(p0, p1, p2, c0, c1, c2);
-    
-    
-}
-
-void FrameBuffer::ortho1() {
+void FrameBuffer::ortho1(tri arr[]) {
    
-    //viewing area
-    double l = -10.0;
-    double r =  10.0;
-    double b = -10.0;
-    double t =  10.0;
-    double n =  -5.0;
-    double f = -25.0;
+    for (int k = 0; k < 2; k++) {
     
-    //Matrices used for transformations
-    Matrix4x4 mOrtho, mVP, M;
-    
-    //Triangle points and colors
-    Vector4D p0(1, 1, 1, 1), p1(2, 5, 1, 1), p2(5, 1, 1, 1);
-    Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
-    
-    
-    mOrtho.makeOrtho(r, l, b, t, n, f);
-    
-    mVP.makeVP(this->getWidth(), this->getHeight());
-    
-    //create transform matrix
-    M = mVP * mOrtho;
-    M.output();
-    p0 = M * p0;
-    p1 = M * p1;
-    p2 = M * p2;
-    
-    rasterizeTriangle(p0, p1, p2, c0, c1, c2);
+        //viewing area
+        double l = -10.0;
+        double r =  10.0;
+        double b = -10.0;
+        double t =  10.0;
+        double n =  -5.0;
+        double f = -25.0;
+        
+        //Matrices used for transformations
+        Matrix4x4 mOrtho, mVP, M;
+        
+        mOrtho.makeOrtho(r, l, b, t, n, f);
+        
+        mVP.makeVP(this->getWidth(), this->getHeight());
+        mOrtho.output();
+        mVP.output();
+        //create transform matrix
+        M = mVP * mOrtho;
+        M.output();
+        arr[k].p0 = M * arr[k].p0;
+        arr[k].p1 = M * arr[k].p1;
+        arr[k].p2 = M * arr[k].p2;
+        
+        rasterizeTriangle(arr[k].p0, arr[k].p1, arr[k].p2, arr[k].c0, arr[k].c1, arr[k].c2);
+    }
 }
 
-void FrameBuffer::ortho2() {
+void FrameBuffer::ortho2(tri arr[]) {
     
-    //viewing area
-    double l = -10.0;
-    double r =  10.0;
-    double b = -10.0;
-    double t =  10.0;
-    double n =  -5.0;
-    double f = -25.0;
+    for (int k = 0; k < 2; k++) {
     
-    Matrix4x4 mOrtho, mVP, mCam, M, e;
-    
-    //Triangle points and colors
-    Vector4D p0(5, 5, 1, 0), p1(10, 14, 1, 0), p2(15, 5, -5, 0);
-    Vector4D p3(5, 6, -1, 0), p4(11, 14, -1, 0), p5(15, 6, -1, 0);
-    Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
-    
-    //Vectors for the camera transformation matrix
-    Vector3D eye(1.0, -10.0, 10.0), gaze(0.0, 1.0, -1.0), viewUp(0.1, 1.0, 0.0);
-    Vector3D u, v, w;
-    
-    //UVW basis for camera
-    w = gaze.normalize() * -1;
-    //cout << "w " << w.x << " " << w.y << " " << w.z <<endl;
-    u = (viewUp.cross(w)).normalize();
-    //cout << "u " << u.x << " " << u.y << " " << u.z <<endl;
-    v = w.cross(u);
-    //cout << "v " << v.x << " " << v.y << " " << v.z << endl << endl;
-    
-    mCam.set(u.x, u.y, u.z, 0,
-             v.x, v.y, v.z, 0,
-             w.x, w.y, w.z, 0,
-             0, 0, 0, 0);
-    
-    e.set(1, 0, 0, (-1)*eye.x,
-          0, 1, 0, (-1)*eye.y,
-          0, 0, 1, (-1)*eye.z,
-          0, 0, 0, 1);
-    
-    mCam = mCam * e;
-    
-    //mCam.output();
-    
-    
-    mOrtho.makeOrtho(r, l, b, t, n, f);
-    mVP.makeVP(this->getWidth(), this->getHeight());
-    
-    //create matrix to
-    M = mVP * mOrtho * mCam;
-    
-    p0 = M * p0;
-    p1 = M * p1;
-    p2 = M * p2;
-    
-    rasterizeTriangle(p0, p1, p2, c0, c1, c2);
-    
-    p3 = M * p3;
-    p4 = M * p4;
-    p5 = M * p5;
-    
-    rasterizeTriangle(p3, p4, p5, c1, c2, c1);
+        //viewing area
+        double l = -10.0;
+        double r =  10.0;
+        double b = -10.0;
+        double t =  10.0;
+        double n =  -5.0;
+        double f = -25.0;
+        
+        Matrix4x4 mOrtho, mVP, mCam, M, e;
+        
+        //Vectors for the camera transformation matrix
+        Vector3D eye(1.0, 1.0, 10.0), gaze(0.0, 0.0, -1.0), viewUp(0.1, 1.0, 0.0);
+        Vector3D u, v, w;
+        
+        //UVW basis for camera
+        w = gaze.normalize() * -1;
+        u = (viewUp.cross(w)).normalize();
+        v = w.cross(u);
+        
+        mCam.set(u.x, u.y, u.z, 0,
+                 v.x, v.y, v.z, 0,
+                 w.x, w.y, w.z, 0,
+                 0, 0, 0, 0);
+        
+        e.set(1, 0, 0, (-1)*eye.x,
+              0, 1, 0, (-1)*eye.y,
+              0, 0, 1, (-1)*eye.z,
+              0, 0, 0, 1);
+        
+        mCam = mCam * e;
+        mCam.output();
+        mOrtho.makeOrtho(r, l, b, t, n, f);
+        mVP.makeVP(this->getWidth(), this->getHeight());
+        
+        //create matrix to
+        M = mVP * mOrtho * mCam;
+        M.output();
+        arr[k].p0 = M * arr[k].p0;
+        arr[k].p1 = M * arr[k].p1;
+        arr[k].p2 = M * arr[k].p2;
+        
+        rasterizeTriangle(arr[k].p0, arr[k].p1, arr[k].p2, arr[k].c0, arr[k].c1, arr[k].c2);
+        
+    }
 }
 
-void FrameBuffer::persp1(){
+void FrameBuffer::persp1(tri arr[]){
     
     //viewing area
     double l = -10.0;
@@ -425,71 +348,55 @@ void FrameBuffer::persp1(){
     double n =  -5.0;
     double f = -25.0;
     
-    Matrix4x4 mOrtho, mPersp, mVP, mCam, M, e, P;
+    for (int k = 0; k < 2; k++) {
     
-    //Triangle points and colors
-    Vector4D p0(-3, 0, -5, 1), p1(1, 5, -5, 1), p2(-2, -1, -5, 1);
-    Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
-    
-    //Vectors for the camera transformation matrix
-    Vector3D eye(0.0, 0.0, 0.0), gaze(0.0, 0.0, -1.0), viewUp(0.0, 1.0, 0.0);
-    Vector3D u, v, w;
-    
-    //UVW basis for camera
-    w = gaze.normalize() * -1;
-    u = (viewUp.cross(w)).normalize();
-    v = w.cross(u);
-    
-    //setting the camera matrix
-    mCam.set(u.x, u.y, u.z, 0,
-             v.x, v.y, v.z, 0,
-             w.x, w.y, w.z, 0,
-             0, 0, 0, 1);
-    
-    //setting the eye matrix
-    e.set(1, 0, 0, (-1)*eye.x,
-          0, 1, 0, (-1)*eye.y,
-          0, 0, 1, (-1)*eye.z,
-          0, 0, 0, 1);
+        Matrix4x4 mOrtho, mPersp, mVP, mCam, M, e, P;
+        
+        //Triangle points and colors
+//        Vector4D p0(-3, 0, -5, 1), p1(1, 5, -5, 1), p2(-2, -1, -5, 1);
+//        Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
+        
+        //Vectors for the camera transformation matrix
+        Vector3D eye(0.0, 0.0, 0.0), gaze(0.0, 0.0, -1.0), viewUp(0.0, 1.0, 0.0);
+        Vector3D u, v, w;
+        
+        //UVW basis for camera
+        w = gaze.normalize() * -1;
+        u = (viewUp.cross(w)).normalize();
+        v = w.cross(u);
+        
+        //setting the camera matrix
+        mCam.set(u.x, u.y, u.z, 0,
+                 v.x, v.y, v.z, 0,
+                 w.x, w.y, w.z, 0,
+                 0, 0, 0, 1);
+        
+        //setting the eye matrix
+        e.set(1, 0, 0, (-1)*eye.x,
+              0, 1, 0, (-1)*eye.y,
+              0, 0, 1, (-1)*eye.z,
+              0, 0, 0, 1);
 
-    mCam = mCam * e;
+        mCam = mCam * e;
 
-    P.set(n, 0, 0, 0, 0, n, 0, 0, 0, 0, n+f, (-1)*f*n, 0, 0, 1, 0);
-    
-    mOrtho.makeOrtho(r, l, b, t, n, f);
-    mPersp = mOrtho*P;
-    mVP.makeVP(this->getWidth(), this->getHeight());
+        P.set(n, 0, 0, 0, 0, n, 0, 0, 0, 0, n+f, (-1)*f*n, 0, 0, 1, 0);
+        
+        mOrtho.makeOrtho(r, l, b, t, n, f);
+        mPersp = mOrtho*P;
+        mVP.makeVP(this->getWidth(), this->getHeight());
 
-    //create matrix to
-    M = mVP * mPersp * mCam;
-    
-    p0 = M * p0;
-    p1 = M * p1;
-    p2 = M * p2;
-    
-    rasterizeTriangle( (p0 / p0.w), (p1 / p1.w), (p2 / p2.w), c0, c1, c2);
-    
-    Vector4D p3(-1, 7, -7, 1), p4(-2, 5, -7, 1), p5(1.5, -0.75, -3, 1);
-    Vector3D c3(0.0, 1.0, 1.0), c4(0.2, 0.0, 1.0), c5(0.3,0.9,0.2);
-    
-    p3 = M * p3;
-    p4 = M * p4;
-    p5 = M * p5;
-    
-    rasterizeTriangle( (p3 / p3.w), (p4 / p4.w), (p5 / p5.w), c3, c4, c5);
-    
-    Vector4D p6(5, 0, -7, 1), p7(4, 2, -7, 1), p8(-2, 0.85, -3, 1);
-    Vector3D c6(1.0, 0.5, 1.0), c7(1.0, 0.0, 0.2), c8(0.0 ,0.3,1.0);
-    
-    p6 = M * p6;
-    p7 = M * p7;
-    p8 = M * p8;
-    
-    rasterizeTriangle( (p6 / p6.w), (p7 / p7.w), (p8 / p8.w), c6, c7, c8);
-    
+        //create matrix to
+        M = mVP * mPersp * mCam;
+        
+        arr[k].p0 = M * arr[k].p0;
+        arr[k].p1 = M * arr[k].p1;
+        arr[k].p2 = M * arr[k].p2;
+        
+        rasterizeTriangle( (arr[k].p0 / arr[k].p0.w), (arr[k].p1 / arr[k].p1.w), (arr[k].p2 / arr[k].p2.w), arr[k].c0, arr[k].c1, arr[k].c2);
+    }
 }
 
-void FrameBuffer::persp2() {
+void FrameBuffer::persp2(tri arr[]) {
     
     //viewing area
     double l = -10.0;
@@ -499,51 +406,110 @@ void FrameBuffer::persp2() {
     double n =  -5.0;
     double f = -25.0;
     
-    Matrix4x4 mOrtho, mPersp, mVP, mCam, M, e, P;
-    
-    //Triangle points and colors
-    Vector4D p0(0, 0, -5, 1), p1(3, 6, -5, 1), p2(7, 1, -5, 1);
-    Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
-    
-    //Vectors for the camera transformation matrix
-    Vector3D eye(1.0, 1.0, 10.0), gaze(0.0, 0.0, -1.0), viewUp(0.1, 1.0, 0.0);
-    Vector3D u, v, w;
-    
-    //UVW basis for camera
-    w = gaze.normalize() * -1;
-    u = (viewUp.cross(w)).normalize();
-    v = w.cross(u);
-    
-    //setting the camera matrix
-    mCam.set(u.x, u.y, u.z, 0,
-             v.x, v.y, v.z, 0,
-             w.x, w.y, w.z, 0,
-             0, 0, 0, 1);
-    
-    //setting the eye matrix
-    e.set(1, 0, 0, (-1)*eye.x,
-          0, 1, 0, (-1)*eye.y,
-          0, 0, 1, (-1)*eye.z,
-          0, 0, 0, 1);
-    
-    //Calculating the camera matrix
-    mCam = mCam * e;
-    
-    P.set(n, 0, 0, 0, 0, n, 0, 0, 0, 0, n+f, (-1)*f*n, 0, 0, 1, 0);
-    
-    mOrtho.makeOrtho(r, l, b, t, n, f);
-    mPersp = mOrtho*P;
-    mVP.makeVP(this->getWidth(), this->getHeight());
-    
-    //create matrix to
-    M = mVP * mPersp * mCam;
-    p0 = M * p0;
-    p1 = M * p1;
-    p2 = M * p2;
-    
-    rasterizeTriangle( (p0 / p0.w), (p1 / p1.w), (p2 / p2.w), c0, c1, c2);
+    for (int k = 0; k < 2; k++) {
+        
+        Matrix4x4 mOrtho, mPersp, mVP, mCam, M, e, P;
+        
+        //Triangle points and colors
+        //        Vector4D p0(-3, 0, -5, 1), p1(1, 5, -5, 1), p2(-2, -1, -5, 1);
+        //        Vector3D c0(1.0, 1.0, 1.0), c1(1.0, 0, 1.0), c2(1.0,1.0,0.0);
+        
+        //Vectors for the camera transformation matrix
+        Vector3D eye(0.0, 0.0, 0.0), gaze(0.0, 0.0, -1.0), viewUp(0.1, 1.0, 0.0);
+        Vector3D u, v, w;
+        
+        //UVW basis for camera
+        w = gaze.normalize() * -1;
+        u = (viewUp.cross(w)).normalize();
+        v = w.cross(u);
+        
+        //setting the camera matrix
+        mCam.set(u.x, u.y, u.z, 0,
+                 v.x, v.y, v.z, 0,
+                 w.x, w.y, w.z, 0,
+                 0, 0, 0, 1);
+        
+        //setting the eye matrix
+        e.set(1, 0, 0, (-1)*eye.x,
+              0, 1, 0, (-1)*eye.y,
+              0, 0, 1, (-1)*eye.z,
+              0, 0, 0, 1);
+        
+        mCam = mCam * e;
+        
+        P.set(n, 0, 0, 0, 0, n, 0, 0, 0, 0, n+f, (-1)*f*n, 0, 0, 1, 0);
+        
+        mOrtho.makeOrtho(r, l, b, t, n, f);
+        mPersp = mOrtho*P;
+        mVP.makeVP(this->getWidth(), this->getHeight());
+        
+        //create matrix to
+        M = mVP * mPersp * mCam;
+        
+        arr[k].p0 = M * arr[k].p0;
+        arr[k].p1 = M * arr[k].p1;
+        arr[k].p2 = M * arr[k].p2;
+        
+        rasterizeTriangle( (arr[k].p0 / arr[k].p0.w), (arr[k].p1 / arr[k].p1.w), (arr[k].p2 / arr[k].p2.w), arr[k].c0, arr[k].c1, arr[k].c2);
+    }
     
 };
+
+void FrameBuffer::creative(tri arr[]) {
+    
+    //viewing area
+    double l = -10.0;
+    double r =  10.0;
+    double b = -10.0;
+    double t =  10.0;
+    double n =  -5.0;
+    double f = -25.0;
+    
+    for (int k = 0; k < 4; k++) {
+        
+        Matrix4x4 mOrtho, mPersp, mVP, mCam, M, e, P;
+        
+        //Vectors for the camera transformation matrix
+        Vector3D eye(0.0, 0.0, 0.0), gaze(0.0, 0.0, -1.0), viewUp(0.0, 1.0, 0.0);
+        Vector3D u, v, w;
+        
+        //UVW basis for camera
+        w = gaze.normalize() * -1;
+        u = (viewUp.cross(w)).normalize();
+        v = w.cross(u);
+        
+        //setting the camera matrix
+        mCam.set(u.x, u.y, u.z, 0,
+                 v.x, v.y, v.z, 0,
+                 w.x, w.y, w.z, 0,
+                 0, 0, 0, 1);
+        
+        //setting the eye matrix
+        e.set(1, 0, 0, (-1)*eye.x,
+              0, 1, 0, (-1)*eye.y,
+              0, 0, 1, (-1)*eye.z,
+              0, 0, 0, 1);
+        
+        mCam = mCam * e;
+        
+        P.set(n, 0, 0, 0, 0, n, 0, 0, 0, 0, n+f, (-1)*f*n, 0, 0, 1, 0);
+        
+        mOrtho.makeOrtho(r, l, b, t, n, f);
+        mPersp = mOrtho*P;
+        mVP.makeVP(this->getWidth(), this->getHeight());
+        
+        //create matrix to
+        M = mVP * mPersp * mCam;
+        
+        arr[k].p0 = M * arr[k].p0;
+        arr[k].p1 = M * arr[k].p1;
+        arr[k].p2 = M * arr[k].p2;
+        
+        rasterizeTriangle( (arr[k].p0 / arr[k].p0.w), (arr[k].p1 / arr[k].p1.w), (arr[k].p2 / arr[k].p2.w), arr[k].c0, arr[k].c1, arr[k].c2);
+    }
+    
+};
+
 
 void FrameBuffer::raytrace(Circle3D circles[]) { //Implements orthographic ray tracing
     

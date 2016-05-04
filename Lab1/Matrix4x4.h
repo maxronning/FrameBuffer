@@ -8,6 +8,7 @@
 
 #ifndef Matrix4x4_h
 #define Matrix4x4_h
+
 #include "Vector3D.h"
 #include "Vector4D.h"
 #include <stdio.h>
@@ -121,12 +122,11 @@ public:
     }
     
     /*
-     
+     s
      void makeTranslate( Vector3D& );  // sets the matrix to the translation matrix
      void makeScale( Vector3D& ); // creates the scale matrix
      void makeOrtho( ... ); // creates the orthographic viewing matrix
      void makePerspective( ... ); //creates the perspective viewing matrix
-     
      
      */
     

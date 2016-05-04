@@ -12,6 +12,7 @@
 
 using namespace std;
 
+#include "tri.h"
 #include "Vector2D.h"
 #include "Vector3D.h"
 #include "Circle3D.h"
@@ -50,13 +51,15 @@ class FrameBuffer {
     
     void printZbuff();
     
-    void ortho1();
+    void ortho1(tri arr[]);
     
-    void ortho2();
+    void ortho2(tri arr[]);
     
-    void persp1();
+    void persp1(tri arr[]);
     
-    void persp2();
+    void persp2(tri arr[]);
+    
+    void creative(tri arr[]);
     
     int getWidth() const;
     
